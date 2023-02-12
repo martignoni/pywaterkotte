@@ -13,7 +13,7 @@ async def waterkotte_detect(
         async with aiohttp.ClientSession() as session:
             # r = await session.get("http://%s/cgi/login" % self.hostname, params=args)
             r = await session.get(
-                f"http://{hostname}/cfg.wtk"
+                f"http://{hostname}/http/easycon/cfg.wtk"
             )  # pylint: disable=invalid-name
             async with r:
                 if r.status == 200:

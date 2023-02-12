@@ -75,7 +75,7 @@ class Easycon(Ecotouch):
         async with aiohttp.ClientSession(cookies=self.auth_cookies) as session:
 
             async with session.get(
-                f"http://{self.hostname}/xml.cgi?{query[1:]}"
+                f"http://{self.hostname}/config/xml.cgi?{query[1:]}"
             ) as resp:
                 r = await resp.text()  # pylint: disable=invalid-name
                 # print(r)

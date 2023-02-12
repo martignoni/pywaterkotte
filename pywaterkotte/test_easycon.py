@@ -13,6 +13,7 @@ import asyncio
 #     waterkotte_detect,
 # )  # , EASYCON, ECOTOUCH
 from easycon import Easycon, EcotouchTag  # pylint: disable=import-error
+from detect import waterkotte_detect
 
 # from pywaterkotte.ecotouch import EcotouchTag
 
@@ -20,13 +21,13 @@ from easycon import Easycon, EcotouchTag  # pylint: disable=import-error
 # import pytest
 # from datetime import datetime
 
-HOSTNAME = "localhost:8000"
+HOSTNAME = "91.188.99.59:8000"
 USERNAME = "waterkotte"
 PASSWORD = "waterkotte"
 EASYCON = "EASYCON"
 
 loop = asyncio.get_event_loop()
-# res = loop.run_until_complete(waterkotte_detect(HOSTNAME, USERNAME, PASSWORD))
+res = loop.run_until_complete(waterkotte_detect(HOSTNAME, USERNAME, PASSWORD))
 
 # print(res)
 res = EASYCON
@@ -50,10 +51,10 @@ if res == EASYCON:
     # print(result)
     # while True:
 
-    # result = asyncio.run(wp.read_values(tags))
-    # for k, v in result.items():
-    #     print("\t%s:\t%s %s Status: %s" % (k, v["value"], k.unit, v["status"]))
+    result = asyncio.run(wp.read_values(tags))
+    for k, v in result.items():
+        print("\t%s:\t%s %s Status: %s" % (k, v["value"], k.unit, v["status"]))
 
-    result = asyncio.run(wp.write_values([(EcotouchTag.ENABLE_COOLING, "off")]))
+    # result = asyncio.run(wp.write_values([(EcotouchTag.ENABLE_COOLING, "off")]))
     # Collection[Tuple[EcotouchTag, Any]]
-    print(result)
+    # print(result)
