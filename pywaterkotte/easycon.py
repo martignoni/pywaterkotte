@@ -13,6 +13,12 @@ from pywaterkotte.ecotouch import (  # pylint: disable=import-error
 )
 
 
+class InvalidValueException(Exception):
+    """A InvalidValueException."""
+
+    # pass
+
+
 class Easycon(Ecotouch):
     """Base Easycon Class, inherits from ecotouch"""
 
@@ -25,8 +31,6 @@ class Easycon(Ecotouch):
     async def logout(self):
         """Logout function (not needed for easycon)"""
         return
-
-        #
 
     # reads a list of ecotouch tags
     #
@@ -118,7 +122,10 @@ class Easycon(Ecotouch):
                         results[tag] = None
                     else:
                         results_status[tag] = "E_OK"
-                        results[tag] = match.text
+                        if valType == "ANALOG":
+                            results[tag] = str(float(match.text) * 10.0)
+                        else:
+                            results[tag] = match.text
 
         return results, results_status
 
