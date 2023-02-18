@@ -5,3 +5,4 @@ build/
 *.py[cod]
 *.tar.gz
 *.whl
+mockdata/_Tags.xml
