@@ -14,7 +14,7 @@ import re
 import math
 from enum import Enum
 from datetime import datetime, timedelta
-
+import struct
 # import requests
 
 
@@ -47,6 +47,30 @@ class EcotouchTag:
 
     # pass
 
+
+
+def _to_float(int_value):
+    # Use struct to interpret the integer as a float
+    return struct.unpack('!f', struct.pack('!I', int_value))[0]
+
+def _process_analogs(
+    self: EcotouchTag, vals, bitnum=None, *other_args
+):  # pylint: disable=unused-argument,keyword-arg-before-vararg
+    #(a1, a2):
+    assert len(self.tags) == 2
+    assert self.tags[0][0] in ["A"]
+    assert self.tags[1][0] in ["A"]
+    a1=vals[self.tags[0]]
+    a2=vals[self.tags[1]]
+    # Combine the two 16-bit values into one 32-bit integer
+    i32 = (a1 << 16) | a2
+    # Convert the 32-bit integer to a float
+    rval = _to_float(i32)
+    # Round to 1 decimal place
+    rval = round(rval, 1)
+    #print("rval", rval)
+
+    return rval
 
 # default method that reads a value based on a single tag
 def _parse_value_default(
@@ -868,6 +892,11 @@ def _parse_status(self, value, *other_args):  # pylint: disable=unused-argument
     else:
         return "Error"
 
+def _parse_cop_year(self, value, *other_args):  # pylint: disable=unused-argument
+    assert len(self.tags) == 1
+    ecotouch_tag = self.tags[0]
+    # assert isinstance(value[ecotouch_tag],int)
+    return int(value[ecotouch_tag]) + 2000
 
 def _parse_state(self, value, *other_args):  # pylint: disable=unused-argument
     assert len(self.tags) == 1
@@ -964,9 +993,9 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     TEMPERATURE_SOLAR = TagData(["A21"], "°C")
     TEMPERATURE_SOLAR_FLOW = TagData(["A22"], "°C")
     POSITION_EXPANSION_VALVE = TagData(["A23"], "?°C")
-    POWER_COMPRESSOR = TagData(["A25"], "?°C")
-    POWER_HEATING = TagData(["A26"], "?°C")
-    POWER_COOLING = TagData(["A27"], "?°C")
+    POWER_COMPRESSOR = TagData(["A25"], "kW")
+    POWER_HEATING = TagData(["A26"], "kW")
+    POWER_COOLING = TagData(["A27"], "kW")
     COP_HEATING = TagData(["A28"], "?°C")
     COP_COOLING = TagData(["A29"], "?°C")
     TEMPERATURE_HEATING_RETURN = TagData(["A30"], "°C")
@@ -979,6 +1008,12 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     TEMPERATURE_WATER_SETPOINT2 = TagData(["A38"], "°C", writeable=True)
     TEMPERATURE_POOL_SETPOINT = TagData(["A40"], "°C", writeable=True)
     TEMPERATURE_POOL_SETPOINT2 = TagData(["A41"], "°C", writeable=True)
+    TEMPERATURE_MIXING1_CURRENT = TagData(["A44"], "°C")
+    TEMPERATURE_MIXING1_SET = TagData(["A45"], "°C", writeable=True)
+    TEMPERATURE_MIXING2_CURRENT = TagData(["A46"], "°C")
+    TEMPERATURE_MIXING2_SET = TagData(["A47"], "°C", writeable=True)
+    TEMPERATURE_MIXING3_CURRENT = TagData(["A48"], "°C")
+    TEMPERATURE_MIXING3_SET = TagData(["A49"], "°C", writeable=True)
     COMPRESSOR_POWER = TagData(["A50"], "?°C")
     PERCENT_HEAT_CIRC_PUMP = TagData(["A51"], "%")
     PERCENT_SOURCE_PUMP = TagData(["A52"], "%")
@@ -993,10 +1028,32 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     TEMP_SET_0_DEG = TagData(["A97"], "°C", writeable=True)
     COOL_ENABLE_TEMP = TagData(["A108"], "°C", writeable=True)
     NVI_SOLL_KUEHLEN = TagData(["A109"], "°C", writeable=True)
+    T_HEATING_LIMIT_MIXING1 = TagData(("A276"), writeable=True)
+    T_HEATING_LIMIT_TARGET_MIXING1 = TagData(("A277"), writeable=True)
+    T_NORM_OUTDOOR_MIXING1 = TagData(["A274"], writeable=True)
+    T_NORM_HEATING_CICLE_MIXING1 = TagData(["A275"], writeable=True)
+    MAX_TEMP_MIXING1 = TagData(["A278"], writeable=True)
+    T_HEATING_LIMIT_MIXING2 = TagData(("A322"), writeable=True)
+    T_HEATING_LIMIT_TARGET_MIXING2 = TagData(("A323"), writeable=True)
+    T_NORM_OUTDOOR_MIXING2 = TagData(["A320"], writeable=True)
+    T_NORM_HEATING_CICLE_MIXING2 = TagData(["A321"], writeable=True)
+    MAX_TEMP_MIXING2 = TagData(["A324"], writeable=True)
+    T_HEATING_LIMIT_MIXING3 = TagData(("A368"), writeable=True)
+    T_HEATING_LIMIT_TARGET_MIXING3 = TagData(("A369"), writeable=True)
+    T_NORM_OUTDOOR_MIXING3 = TagData(["A366"], writeable=True)
+    T_NORM_HEATING_CICLE_MIXING3 = TagData(["A367"], writeable=True)
+    MAX_TEMP_MIXING3 = TagData(["A372"], writeable=True)
+    ANUAL_CONSUMPTION_COMPRESSOR = TagData(["A444","A445"],read_function=_process_analogs)
+    ANUAL_CONSUMPTION_HEATING = TagData(["A452","A453"],read_function=_process_analogs)
+    ANUAL_CONSUMPTION_WATER = TagData(["A454","A455"],read_function=_process_analogs)
+    HEATPUMP_COP = TagData(["A460"])
     TEMPCHANGE_HEATING_PV = TagData(["A682"], "°C")
     TEMPCHANGE_COOLING_PV = TagData(["A683"], "°C")
     TEMPCHANGE_WARMWATER_PV = TagData(["A684"], "°C")
     TEMPCHANGE_POOL_PV = TagData(["A685"], "°C")
+    HEATINGMODE_MIXING1 = TagData(["D251"])
+    HEATINGMODE_MIXING2 = TagData(["D294"])
+    HEATINGMODE_MIXING3 = TagData(["D337"])
     VERSION_CONTROLLER = TagData(
         ["I1", "I2"],
         writeable=False,
@@ -1025,6 +1082,15 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     )  # pylint: disable=line-too-long
     ENABLE_POOL = TagData(
         ["I33"], read_function=_parse_state, write_function=_write_state, writeable=True
+    )  # pylint: disable=line-too-long
+    ENABLE_MIXING1 = TagData(
+        ["I37"], read_function=_parse_state, write_function=_write_state, writeable=True
+    )  # pylint: disable=line-too-long
+    ENABLE_MIXING2 = TagData(
+        ["I38"], read_function=_parse_state, write_function=_write_state, writeable=True
+    )  # pylint: disable=line-too-long
+    ENABLE_MIXING3 = TagData(
+        ["I39"], read_function=_parse_state, write_function=_write_state, writeable=True
     )  # pylint: disable=line-too-long
     ENABLE_PV = TagData(
         ["I41"], read_function=_parse_state, write_function=_write_state, writeable=True
@@ -1055,6 +1121,10 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
         read_function=_parse_sn,
     )
     ADAPT_HEATING = TagData(["I263"], writeable=True)
+    ADAPT_MIXING1 = TagData(["I776"], writeable=True)
+    ADAPT_MIXING2 = TagData(["I896"], writeable=True)
+    ADAPT_MIXING3 = TagData(["I1017"], writeable=True)
+    HEATPUMP_COP_YEAR = TagData(["I1261"],read_function=_parse_cop_year)
     MANUAL_HEATINGPUMP = TagData(["I1270"])
     MANUAL_SOURCEPUMP = TagData(["I1281"])
     MANUAL_SOLARPUMP1 = TagData(["I1287"])
