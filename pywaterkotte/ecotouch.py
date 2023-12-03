@@ -60,8 +60,8 @@ def _process_analogs(
     assert len(self.tags) == 2
     assert self.tags[0][0] in ["A"]
     assert self.tags[1][0] in ["A"]
-    a1=vals[self.tags[0]]
-    a2=vals[self.tags[1]]
+    a1=int(vals[self.tags[0]])
+    a2=int(vals[self.tags[1]])
     # Combine the two 16-bit values into one 32-bit integer
     i32 = (a1 << 16) | a2
     # Convert the 32-bit integer to a float
