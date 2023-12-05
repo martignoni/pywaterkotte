@@ -53,6 +53,8 @@ def _to_float(int_value):
     # Use struct to interpret the integer as a float
     return struct.unpack('!f', struct.pack('!I', int_value))[0]
 
+def _rshift(val, n): return val>>n if val >= 0 else (val+0x100000000)>>n
+
 def _process_analogs(
     self: EcotouchTag, vals, bitnum=None, *other_args
 ):  # pylint: disable=unused-argument,keyword-arg-before-vararg
@@ -60,10 +62,18 @@ def _process_analogs(
     assert len(self.tags) == 2
     assert self.tags[0][0] in ["A"]
     assert self.tags[1][0] in ["A"]
+    if self.tags[0] not in vals or self.tags[1] not in vals:
+        return None
+
+    #print(vals[self.tags[0]])
+    #print(vals[self.tags[1]])
     a1=int(vals[self.tags[0]])
     a2=int(vals[self.tags[1]])
+
     # Combine the two 16-bit values into one 32-bit integer
-    i32 = (a1 << 16) | a2
+    #i32 = (a1 << 16) | a2
+    i32 = _rshift((a1 << 16),0)| _rshift(a2,0) & 65535
+    #print(i32)
     # Convert the 32-bit integer to a float
     rval = _to_float(i32)
     # Round to 1 decimal place
@@ -1044,13 +1054,101 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     T_NORM_HEATING_CICLE_MIXING3 = TagData(["A367"], writeable=True)
     MAX_TEMP_MIXING3 = TagData(["A372"], writeable=True)
     ANUAL_CONSUMPTION_COMPRESSOR = TagData(["A444","A445"],read_function=_process_analogs)
+    ANUAL_CONSUMPTION_SOURCEPUMP = TagData(["A446","A447"],read_function=_process_analogs)
+    ANUAL_CONSUMPTION_EXTERNALHEATER = TagData(["A448","A449"],read_function=_process_analogs)
     ANUAL_CONSUMPTION_HEATING = TagData(["A452","A453"],read_function=_process_analogs)
     ANUAL_CONSUMPTION_WATER = TagData(["A454","A455"],read_function=_process_analogs)
+    ANUAL_CONSUMPTION_POOL = TagData(["A456","A457"],read_function=_process_analogs)
     HEATPUMP_COP = TagData(["A460"])
     TEMPCHANGE_HEATING_PV = TagData(["A682"], "°C")
     TEMPCHANGE_COOLING_PV = TagData(["A683"], "°C")
     TEMPCHANGE_WARMWATER_PV = TagData(["A684"], "°C")
     TEMPCHANGE_POOL_PV = TagData(["A685"], "°C")
+    CONSUMPTION_COMPRESSOR1 = TagData(["A782"])
+    CONSUMPTION_COMPRESSOR2 = TagData(["A783"])
+    CONSUMPTION_COMPRESSOR3 = TagData(["A784"])
+    CONSUMPTION_COMPRESSOR4 = TagData(["A785"])
+    CONSUMPTION_COMPRESSOR5 = TagData(["A786"])
+    CONSUMPTION_COMPRESSOR6 = TagData(["A787"])
+    CONSUMPTION_COMPRESSOR7 = TagData(["A788"])
+    CONSUMPTION_COMPRESSOR8 = TagData(["A789"])
+    CONSUMPTION_COMPRESSOR9 = TagData(["A790"])
+    CONSUMPTION_COMPRESSOR10 = TagData(["A791"])
+    CONSUMPTION_COMPRESSOR11 = TagData(["A792"])
+    CONSUMPTION_COMPRESSOR12 = TagData(["A793"])
+    CONSUMPTION_SOURCEPUMP1 = TagData(["A794"])
+    CONSUMPTION_SOURCEPUMP2 = TagData(["A795"])
+    CONSUMPTION_SOURCEPUMP3 = TagData(["A796"])
+    CONSUMPTION_SOURCEPUMP4 = TagData(["A797"])
+    CONSUMPTION_SOURCEPUMP5 = TagData(["A798"])
+    CONSUMPTION_SOURCEPUMP6 = TagData(["A799"])
+    CONSUMPTION_SOURCEPUMP7 = TagData(["A800"])
+    CONSUMPTION_SOURCEPUMP8 = TagData(["A802"])
+    CONSUMPTION_SOURCEPUMP9 = TagData(["A804"])
+    CONSUMPTION_SOURCEPUMP10 = TagData(["A805"])
+    CONSUMPTION_SOURCEPUMP11 = TagData(["A806"])
+    CONSUMPTION_SOURCEPUMP12 = TagData(["A807"])
+    #Docs say it should start at 806 for external heater but there is an overlapp to source pump
+    CONSUMPTION_EXTERNALHEATER1 = TagData(["A808"])
+    CONSUMPTION_EXTERNALHEATER2 = TagData(["A809"])
+    CONSUMPTION_EXTERNALHEATER3 = TagData(["A810"])
+    CONSUMPTION_EXTERNALHEATER4 = TagData(["A811"])
+    CONSUMPTION_EXTERNALHEATER5 = TagData(["A812"])
+    CONSUMPTION_EXTERNALHEATER6 = TagData(["A813"])
+    CONSUMPTION_EXTERNALHEATER7 = TagData(["A814"])
+    CONSUMPTION_EXTERNALHEATER8 = TagData(["A815"])
+    CONSUMPTION_EXTERNALHEATER9 = TagData(["A816"])
+    CONSUMPTION_EXTERNALHEATER10 = TagData(["A817"])
+    CONSUMPTION_EXTERNALHEATER11 = TagData(["A818"])
+    CONSUMPTION_EXTERNALHEATER12 = TagData(["A819"])
+    CONSUMPTION_HEATING1 = TagData(["A830"])
+    CONSUMPTION_HEATING2 = TagData(["A831"])
+    CONSUMPTION_HEATING3 = TagData(["A832"])
+    CONSUMPTION_HEATING4 = TagData(["A833"])
+    CONSUMPTION_HEATING5 = TagData(["A834"])
+    CONSUMPTION_HEATING6 = TagData(["A835"])
+    CONSUMPTION_HEATING7 = TagData(["A836"])
+    CONSUMPTION_HEATING8 = TagData(["A837"])
+    CONSUMPTION_HEATING9 = TagData(["A838"])
+    CONSUMPTION_HEATING10 = TagData(["A839"])
+    CONSUMPTION_HEATING11 = TagData(["A840"])
+    CONSUMPTION_HEATING12 = TagData(["A841"])
+    CONSUMPTION_WARMWATER1 = TagData(["A842"])
+    CONSUMPTION_WARMWATER2 = TagData(["A843"])
+    CONSUMPTION_WARMWATER3 = TagData(["A844"])
+    CONSUMPTION_WARMWATER4 = TagData(["A845"])
+    CONSUMPTION_WARMWATER5 = TagData(["A846"])
+    CONSUMPTION_WARMWATER6 = TagData(["A847"])
+    CONSUMPTION_WARMWATER7 = TagData(["A848"])
+    CONSUMPTION_WARMWATER8 = TagData(["A849"])
+    CONSUMPTION_WARMWATER9 = TagData(["A850"])
+    CONSUMPTION_WARMWATER10 = TagData(["A851"])
+    CONSUMPTION_WARMWATER11 = TagData(["A852"])
+    CONSUMPTION_WARMWATER12 = TagData(["A853"])
+    CONSUMPTION_POOL1 = TagData(["A854"])
+    CONSUMPTION_POOL2 = TagData(["A855"])
+    CONSUMPTION_POOL3 = TagData(["A856"])
+    CONSUMPTION_POOL4 = TagData(["A857"])
+    CONSUMPTION_POOL5 = TagData(["A858"])
+    CONSUMPTION_POOL6 = TagData(["A859"])
+    CONSUMPTION_POOL7 = TagData(["A860"])
+    CONSUMPTION_POOL8 = TagData(["A861"])
+    CONSUMPTION_POOL9 = TagData(["A862"])
+    CONSUMPTION_POOL10 = TagData(["A863"])
+    CONSUMPTION_POOL11 = TagData(["A864"])
+    CONSUMPTION_POOL12 = TagData(["A865"])
+    HEATPUMP_COP_MONTH1 = TagData(["A924"])
+    HEATPUMP_COP_MONTH2 = TagData(["A925"])
+    HEATPUMP_COP_MONTH3 = TagData(["A926"])
+    HEATPUMP_COP_MONTH4 = TagData(["A927"])
+    HEATPUMP_COP_MONTH5 = TagData(["A928"])
+    HEATPUMP_COP_MONTH6 = TagData(["A929"])
+    HEATPUMP_COP_MONTH7 = TagData(["A930"])
+    HEATPUMP_COP_MONTH8 = TagData(["A930"])
+    HEATPUMP_COP_MONTH9 = TagData(["A931"])
+    HEATPUMP_COP_MONTH10 = TagData(["A932"])
+    HEATPUMP_COP_MONTH11 = TagData(["A933"])
+    HEATPUMP_COP_MONTH12 = TagData(["A934"])
     HEATINGMODE_MIXING1 = TagData(["D251"])
     HEATINGMODE_MIXING2 = TagData(["D294"])
     HEATINGMODE_MIXING3 = TagData(["D337"])
@@ -1377,7 +1475,8 @@ class Ecotouch:
                         results_status[tag] = "E_INACTIVE"
                         results[tag] = None
                     else:
-                        results_status[tag] = "E_OK"
+                        #results_status[tag] = "E_OK"
+                        results_status[tag] = match.group("status")
                         results[tag] = match.group("value")
 
         return results, results_status

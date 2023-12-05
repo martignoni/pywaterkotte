@@ -6,6 +6,8 @@ def to_float(int_value):
 
 def process_analogs(a1, a2):
     # Combine the two 16-bit values into one 32-bit integer
+    a1=int(a1*10)
+    a2=int(a2*10)
     i32 = (a1 << 16) | a2
     # Convert the 32-bit integer to a float
     rval = to_float(i32)
@@ -23,8 +25,8 @@ def process_analogs(a1, a2):
 
 # Usage example:
 analogs = [0] * 446  # Assuming analogs is a list with at least 446 elements
-analogs[444] = 17728 # Your value for analogs[444]
-analogs[445] = 28184 # Your value for analogs[445]
+analogs[444] = 1766.2 # Your value for analogs[444]
+analogs[445] = -562.4 # Your value for analogs[445]
 analogs[441] = 123 # Your value for analogs[441]
 
 data1 = process_analogs(analogs[444], analogs[445])
