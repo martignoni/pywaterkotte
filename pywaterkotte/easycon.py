@@ -83,18 +83,23 @@ class Easycon(Ecotouch):
             ) as resp:
                 r = await resp.text()  # pylint: disable=invalid-name
                 # print(r)
-                tree = ET.fromstring(r)
-                root = tree[0]
-                # for types in root[0]:
-                #    print(types.tag)
+                try:
+                    tree = ET.fromstring(r)
+                    root = tree[0]
+                    # for types in root[0]:
+                    #    print(types.tag)
 
-                for tagType in root:
-                    # print(tag_type)
-                    for tag in tagType:
-                        # print(tag)
-                        if int(tag[0].text) < 50:
-                            print(f"{tagType.tag[0]}{tag[0].text}={tag[1].text}")
+                    for tagType in root:
+                        # print(tag_type)
+                        for tag in tagType:
+                            # print(tag)
+                            if int(tag[0].text) < 50:
+                                print(f"{tagType.tag[0]}{tag[0].text}={tag[1].text}")
+                except:
+                    print(resp)
+                    print(f"Error in easycon.py parsing response. Received: {r}")
 
+                    raise Exception(f"Error in easycon.py parsing response. Received: {r}")
                 # return None, None
 
                 for tag in tags:
