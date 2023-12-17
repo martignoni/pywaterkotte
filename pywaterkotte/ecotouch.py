@@ -15,6 +15,7 @@ import math
 from enum import Enum
 from datetime import datetime, timedelta
 import struct
+import logging
 # import requests
 
 
@@ -22,7 +23,13 @@ import struct
 import aiohttp
 
 MAX_NO_TAGS = 10
+_LOGGER: logging.Logger = None
 
+# def setup_logger():
+#     global _LOGGER
+#     _LOGGER = logging.getLogger(__name__)
+
+# setup_logger()
 
 class StatusException(Exception):
     """A Status Exception."""
@@ -1002,12 +1009,12 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     TEMPERATURE_POOL = TagData(["A20"], "°C")
     TEMPERATURE_SOLAR = TagData(["A21"], "°C")
     TEMPERATURE_SOLAR_FLOW = TagData(["A22"], "°C")
-    POSITION_EXPANSION_VALVE = TagData(["A23"], "?°C")
+    POSITION_EXPANSION_VALVE = TagData(["A23"], "%")
     POWER_COMPRESSOR = TagData(["A25"], "kW")
     POWER_HEATING = TagData(["A26"], "kW")
     POWER_COOLING = TagData(["A27"], "kW")
-    COP_HEATING = TagData(["A28"], "?°C")
-    COP_COOLING = TagData(["A29"], "?°C")
+    COP_HEATING = TagData(["A28"], "COP")
+    COP_COOLING = TagData(["A29"], "COP")
     TEMPERATURE_HEATING_RETURN = TagData(["A30"], "°C")
     TEMPERATURE_HEATING_SET = TagData(["A31"], "°C", writeable=True)
     TEMPERATURE_HEATING_SET2 = TagData(["A32"], "°C", writeable=True)
@@ -1024,11 +1031,11 @@ class EcotouchTag(TagData, Enum):  # pylint: disable=function-redefined
     TEMPERATURE_MIXING2_SET = TagData(["A47"], "°C", writeable=True)
     TEMPERATURE_MIXING3_CURRENT = TagData(["A48"], "°C")
     TEMPERATURE_MIXING3_SET = TagData(["A49"], "°C", writeable=True)
-    COMPRESSOR_POWER = TagData(["A50"], "?°C")
+    COMPRESSOR_POWER = TagData(["A50"], "%")
     PERCENT_HEAT_CIRC_PUMP = TagData(["A51"], "%")
     PERCENT_SOURCE_PUMP = TagData(["A52"], "%")
     PERCENT_COMPRESSOR = TagData(["A58"], "%")
-    HYSTERESIS_HEATING = TagData(["A61"], "?")
+    HYSTERESIS_HEATING = TagData(["A61"], "K")
     TEMPERATURE2_OUTSIDE_1H = TagData(["A90"], "°C")
     NVI_NORM_AUSSEN = TagData(["A91"], "?", writeable=True)
     NVI_HEIZKREIS_NORM = TagData(["A92"], "?", writeable=True)
@@ -1264,7 +1271,11 @@ class Ecotouch:
 
     auth_cookies = None
 
-    def __init__(self, host):
+
+    def __init__(self, host, logger=None):
+        global _LOGGER
+        _LOGGER = logger or logging.getLogger(__name__)
+        #Ecotouch._LOGGER = logger or logging.getLogger(__name__)
         self.hostname = host
         self.username = "waterkotte"
         self.password = "waterkotte"
@@ -1295,8 +1306,7 @@ class Ecotouch:
                 assert r.status == 200
                 # r = await resp.text()
 
-                print(await r.text())
-                print(r.status)
+                _LOGGER.debug(f"Login Respone Text{await r.text()} HTTP Code:{r.status}")
                 if self.get_status_response(await r.text()) != "S_OK":
                     raise StatusException(
                         f"Fehler beim Login: Status:{self.get_status_response(await r.text())}"
@@ -1314,8 +1324,8 @@ class Ecotouch:
                 # assert r.status == 200
                 # r = await resp.text()
 
-                print(await r.text())
-                print(r.status)
+                _LOGGER.debug(f"Logout Respone Text{await r.text()} HTTP Code:{r.status}")
+                #_LOGGER.debug(r.status)
                 # if self.get_status_response(await r.text()) != "S_OK":
                 #     raise StatusException(
                 #         f"Fehler beim Logout: Status:{self.get_status_response(await r.text())}"
@@ -1368,7 +1378,8 @@ class Ecotouch:
         # create flat list of ecotouch tags to be read
         e_tags = list(set([etag for tag in tags for etag in tag.tags]))
         e_values, e_status = await self._read_tags(e_tags)
-
+        _LOGGER.debug(f"read_values: tags: {e_tags}")
+        _LOGGER.debug(f"read_values: values: {e_values}")
         result = {}
         # result_status = {}
         for tag in tags:
@@ -1448,11 +1459,13 @@ class Ecotouch:
             async with session.get(
                 f"http://{self.hostname}/cgi/readTags", params=args
             ) as resp:
+                _LOGGER.debug("_read_tags: request: %s",resp.request_info)
                 r = await resp.text()  # pylint: disable=invalid-name
                 # print(r)
                 if r == "#E_NEED_LOGIN\n":
                     await self.login(self.username, self.password)
                     return results, results_status
+                _LOGGER.debug("_read_tags: response: %s",r)
                 for tag in tags:
                     match = re.search(
                         f"#{tag}\t(?P<status>[A-Z_]+)\n\d+\t(?P<value>\-?\d+)",  # pylint: disable=anomalous-backslash-in-string
@@ -1547,13 +1560,6 @@ class Ecotouch:
                     else:
                         results_status[tag] = "E_OK"
                         results[tag] = match.group("value")
-
+            _LOGGER.debug("results: ",results)
+            _LOGGER.debug("results_status: ",results_status)
             return results, results_status
-
-            # match = re.search(f"#{tag}\t(?P<status>[A-Z_]+)\n\d+\t(?P<value>\-?\d+)", r, re.MULTILINE)  # pylint: disable=anomalous-backslash-in-string
-            # # match = re.search(r"(?:^\d+\t)(\-?\d+)", r, re.MULTILINE)
-            # if match is not None:
-            #     result[tag] = {"value": match.group(2), "status": match.group(1)}
-            #     return result
-            #     # return match.group(1)
-            # return None
