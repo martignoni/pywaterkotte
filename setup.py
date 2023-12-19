@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pywaterkotte2",
-    version="0.0.13",
+    version="0.0.14",
     author="Michael Pattison",
     author_email="michael@pattison.de",
     description="python library for waterkotte heatpumps",

@@ -124,6 +124,7 @@ def _parse_value_default(
 
 
 def _write_value_default(self, value, et_values):
+    _LOGGER.debug(f"_write_value_default, value: {value}, et_values: {et_values}")
     assert len(self.tags) == 1
     ecotouch_tag = self.tags[0]
     assert ecotouch_tag[0] in ["A", "I", "D"]
@@ -1353,7 +1354,7 @@ class Ecotouch:
             if res is not None and len(res[0]) > 0:
                 all_ok = True
                 for value in res[1]:
-                    if res[1][value] != "E_OK":
+                    if res[1][value] != "S_OK":
                         all_ok = False
                 if all_ok:
                     val = k.read_function(k, res[0], k.bit)
@@ -1484,11 +1485,9 @@ class Ecotouch:
                         if match is None:
                             raise Exception(tag + " tag not found in response")
 
-                        # if val_status == "E_INACTIVE":
                         results_status[tag] = "E_INACTIVE"
                         results[tag] = None
                     else:
-                        #results_status[tag] = "E_OK"
                         results_status[tag] = match.group("status")
                         results[tag] = match.group("value")
 
@@ -1558,8 +1557,8 @@ class Ecotouch:
                         results_status[tag] = "E_INACTIVE"
                         results[tag] = None
                     else:
-                        results_status[tag] = "E_OK"
+                        results_status[tag] = "S_OK"
                         results[tag] = match.group("value")
-            _LOGGER.debug("results: ",results)
-            _LOGGER.debug("results_status: ",results_status)
+            _LOGGER.debug(f"results: {results}")
+            _LOGGER.debug(f"results_status: {results_status}")
             return results, results_status
